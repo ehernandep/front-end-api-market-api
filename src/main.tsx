@@ -3,11 +3,12 @@ import { AwsRum, AwsRumConfig } from "aws-rum-web";
   try {
     const config: AwsRumConfig = {
       sessionSampleRate: 1,
+      identityPoolId: "us-east-1:74e48c18-2856-4dc6-a115-c841fda3f523",
       endpoint: "https://dataplane.rum.us-east-1.amazonaws.com",
       telemetries: ["performance", "errors", "http"],
       allowCookies: true,
       enableXRay: false,
-      signing: false, // If you have a public resource policy and wish to send unsigned requests please set this to false
+      signing: true, // If you have a public resource policy and wish to send unsigned requests please set this to false
     };
 
     const APPLICATION_ID: string = "61f1a7b0-c2ff-4222-a8ce-fd7019b2787d";
