@@ -7,8 +7,8 @@ export interface ApiCategory {
 }
 
 export interface ApiStats {
-  totalCalls: number;
-  lastWeekCalls: number;
+  total_calls: number;
+  last_week_calls: number;
   uptime: number;
   responseTime: number;
 }
@@ -24,7 +24,7 @@ export interface Api {
   createdAt: string;
   updatedAt: string;
   stats: ApiStats;
-  baseUrl: string;
+  base_url: string;
   documentationUrl: string;
   auth: {
     type: 'apiKey' | 'oauth2' | 'none';
@@ -60,12 +60,12 @@ export const apis: Api[] = [
     createdAt: '2024-02-15T10:00:00Z',
     updatedAt: '2025-03-01T14:30:00Z',
     stats: {
-      totalCalls: 1458965,
-      lastWeekCalls: 24560,
+      total_calls: 1458965,
+      last_week_calls: 24560,
       uptime: 99.98,
       responseTime: 120,
     },
-    baseUrl: 'https://api.payment-gateway.com',
+    base_url: 'https://api.payment-gateway.com',
     documentationUrl: 'https://docs.payment-gateway.com',
     auth: {
       type: 'apiKey',
@@ -95,12 +95,12 @@ export const apis: Api[] = [
     createdAt: '2023-11-10T08:15:00Z',
     updatedAt: '2025-01-20T11:45:00Z',
     stats: {
-      totalCalls: 9872354,
-      lastWeekCalls: 187654,
+      total_calls: 9872354,
+      last_week_calls: 187654,
       uptime: 99.95,
       responseTime: 180,
     },
-    baseUrl: 'https://api.weatherforecast.com',
+    base_url: 'https://api.weatherforecast.com',
     documentationUrl: 'https://developers.weatherforecast.com',
     auth: {
       type: 'apiKey',
@@ -130,12 +130,12 @@ export const apis: Api[] = [
     createdAt: '2024-01-05T09:20:00Z',
     updatedAt: '2025-04-10T13:40:00Z',
     stats: {
-      totalCalls: 7854236,
-      lastWeekCalls: 156320,
+      total_calls: 7854236,
+      last_week_calls: 156320,
       uptime: 99.90,
       responseTime: 145,
     },
-    baseUrl: 'https://api.socialnetwork.io',
+    base_url: 'https://api.socialnetwork.io',
     documentationUrl: 'https://developers.socialnetwork.io/docs',
     auth: {
       type: 'oauth2',
@@ -165,12 +165,12 @@ export const apis: Api[] = [
     createdAt: '2023-06-20T14:10:00Z',
     updatedAt: '2025-02-15T16:20:00Z',
     stats: {
-      totalCalls: 2345678,
-      lastWeekCalls: 34560,
+      total_calls: 2345678,
+      last_week_calls: 34560,
       uptime: 99.97,
       responseTime: 200,
     },
-    baseUrl: 'https://api.opendata.gov',
+    base_url: 'https://api.opendata.gov',
     documentationUrl: 'https://docs.opendata.gov',
     auth: {
       type: 'apiKey',
@@ -200,12 +200,12 @@ export const apis: Api[] = [
     createdAt: '2023-09-12T11:30:00Z',
     updatedAt: '2025-05-05T09:15:00Z',
     stats: {
-      totalCalls: 6789012,
-      lastWeekCalls: 123450,
+      total_calls: 6789012,
+      last_week_calls: 123450,
       uptime: 99.93,
       responseTime: 160,
     },
-    baseUrl: 'https://api.ecommerce-platform.com',
+    base_url: 'https://api.ecommerce-platform.com',
     documentationUrl: 'https://developers.ecommerce-platform.com',
     auth: {
       type: 'oauth2',
@@ -235,12 +235,12 @@ export const apis: Api[] = [
     createdAt: '2024-03-18T15:40:00Z',
     updatedAt: '2025-04-22T10:10:00Z',
     stats: {
-      totalCalls: 12345678,
-      lastWeekCalls: 234560,
+      total_calls: 12345678,
+      last_week_calls: 234560,
       uptime: 99.96,
       responseTime: 130,
     },
-    baseUrl: 'https://api.messaging-service.com',
+    base_url: 'https://api.messaging-service.com',
     documentationUrl: 'https://docs.messaging-service.com',
     auth: {
       type: 'apiKey',
@@ -264,7 +264,7 @@ export const apis: Api[] = [
 // Métricas para el dashboard
 export const dashboardMetrics = {
   totalApis: apis.length,
-  totalApiCalls: apis.reduce((sum, api) => sum + api.stats.totalCalls, 0),
+  totalApiCalls: apis.reduce((sum, api) => sum + api.stats.total_calls, 0),
   newApisLastMonth: 3,
   activeUsers: 1245,
   popularCategories: [
@@ -284,7 +284,7 @@ export const dashboardMetrics = {
   topApis: apis.slice(0, 3).map(api => ({
     id: api.id,
     name: api.name,
-    calls: api.stats.totalCalls,
+    calls: api.stats.total_calls,
     uptime: api.stats.uptime,
   })),
 };

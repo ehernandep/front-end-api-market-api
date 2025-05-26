@@ -1,12 +1,7 @@
-
-import { useParams, useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
-import { apis } from "@/data/mockData";
 import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -33,6 +28,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { useViewApi } from "@/hooks/useViewApi";
 
 const API_EXAMPLE = `
 {
@@ -91,39 +87,8 @@ const API_EXAMPLE = `
 `;
 
 const ViewApi = () => {
-  const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
-  const [api, setApi] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("docs");
-  const [showFullSpec, setShowFullSpec] = useState(false);
-
-  useEffect(() => {
-    // Simulamos la carga de la API
-    setTimeout(() => {
-      const foundApi = apis.find((a) => a.id === id);
-      if (foundApi) {
-        setApi(foundApi);
-      }
-      setLoading(false);
-    }, 500);
-  }, [id]);
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("es-ES", {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-    });
-  };
-
-  const copyToClipboard = (text: string, message: string) => {
-    navigator.clipboard.writeText(text);
-    toast.success(message);
-  };
-
-  // Si no se encuentra la API
+  const {loading, api, navigate, formatDate, copyToClipboard, setShowFullSpec, activeTab, showFullSpec, setActiveTab} = useViewApi();
+  
   if (!loading && !api) {
     return (
       <div className="text-center py-12">
@@ -226,40 +191,19 @@ const ViewApi = () => {
                     </p>
                     <div className="flex items-center gap-2 mt-1 bg-muted p-2 rounded-md">
                       <p className="text-sm font-mono flex-grow overflow-x-auto whitespace-nowrap">
-                        {api.baseUrl}
+                        {api.base_url}
                       </p>
                       <Button
                         variant="ghost"
                         size="icon"
                         className="h-6 w-6 flex-shrink-0"
                         onClick={() =>
-                          copyToClipboard(api.baseUrl, "URL copiada")
+                          copyToClipboard(api.base_url, "URL copiada")
                         }
                       >
                         <Copy className="h-3 w-3" />
                       </Button>
                     </div>
-                  </div>
-
-                  <div>
-                    <p className="text-sm text-muted-foreground">
-                      Autenticación
-                    </p>
-                    <div className="flex items-center gap-1.5 mt-1">
-                      <Key className="h-4 w-4" />
-                      <p className="text-sm">
-                        {api.auth.type === "none"
-                          ? "Sin autenticación"
-                          : api.auth.type === "apiKey"
-                          ? "API Key"
-                          : "OAuth 2.0"}
-                      </p>
-                    </div>
-                    {api.auth.description && (
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {api.auth.description}
-                      </p>
-                    )}
                   </div>
 
                   <div>
@@ -291,7 +235,7 @@ const ViewApi = () => {
                         <p className="text-sm font-medium">Total de llamadas</p>
                       </div>
                       <p className="font-bold">
-                        {api.stats.totalCalls.toLocaleString()}
+                        {api.stats.total_calls.toLocaleString()}
                       </p>
                     </div>
                   </div>
@@ -305,7 +249,7 @@ const ViewApi = () => {
                         </p>
                       </div>
                       <p className="font-bold">
-                        {api.stats.lastWeekCalls.toLocaleString()}
+                        {api.stats.last_week_calls.toLocaleString()}
                       </p>
                     </div>
                   </div>
@@ -380,30 +324,10 @@ const ViewApi = () => {
                           </h3>
 
                           <div className="space-y-4">
-                            <div className="p-4 border border-border rounded-lg">
-                              <h4 className="font-medium mb-2">
-                                1. Obtener credenciales
-                              </h4>
-                              <p className="text-sm text-muted-foreground mb-2">
-                                {api.auth.type === "none"
-                                  ? "Esta API no requiere autenticación."
-                                  : `Para usar esta API necesitas ${
-                                      api.auth.type === "apiKey"
-                                        ? "una API Key"
-                                        : "credenciales OAuth"
-                                    }.`}
-                              </p>
-                              {api.auth.type !== "none" && (
-                                <p className="text-sm">
-                                  Contacta al propietario para obtener tus
-                                  credenciales.
-                                </p>
-                              )}
-                            </div>
 
                             <div className="p-4 border border-border rounded-lg">
                               <h4 className="font-medium mb-2">
-                                2. Hacer tu primera llamada
+                                1. Hacer tu primera llamada
                               </h4>
                               <p className="text-sm text-muted-foreground mb-3">
                                 Ejemplo de solicitud usando cURL:
@@ -411,14 +335,10 @@ const ViewApi = () => {
                               <div className="bg-card p-3 rounded-md">
                                 <div className="flex items-start justify-between">
                                   <code className="text-xs font-mono whitespace-pre overflow-x-auto">
-                                    {`curl -X GET "${api.baseUrl}${api.endpoints[0]?.path || ""}" \\
+                                    {`curl -X GET "${api.base_url}${api.endpoints[0]?.path || ""}" \\
   -H "Content-Type: application/json" \\
   ${
-    api.auth.type === "apiKey"
-      ? '-H "X-API-Key: TU_API_KEY"'
-      : api.auth.type === "oauth2"
-      ? '-H "Authorization: Bearer TU_TOKEN"'
-      : ""
+    ""
   }`}
                                   </code>
                                   <Button
@@ -427,14 +347,10 @@ const ViewApi = () => {
                                     className="h-6 w-6 flex-shrink-0"
                                     onClick={() =>
                                       copyToClipboard(
-                                        `curl -X GET "${api.baseUrl}${
+                                        `curl -X GET "${api.base_url}${
                                           api.endpoints[0]?.path || ""
                                         }" -H "Content-Type: application/json" ${
-                                          api.auth.type === "apiKey"
-                                            ? '-H "X-API-Key: TU_API_KEY"'
-                                            : api.auth.type === "oauth2"
-                                            ? '-H "Authorization: Bearer TU_TOKEN"'
-                                            : ""
+                                           ""
                                         }`,
                                         "Comando copiado"
                                       )
@@ -448,7 +364,7 @@ const ViewApi = () => {
 
                             <div className="p-4 border border-border rounded-lg">
                               <h4 className="font-medium mb-2">
-                                3. Entorno de pruebas
+                                2. Entorno de pruebas
                               </h4>
                               <p className="text-sm text-muted-foreground">
                                 Puedes usar el entorno de sandbox para probar la
@@ -456,7 +372,7 @@ const ViewApi = () => {
                               </p>
                               <div className="flex items-center gap-2 mt-2 bg-muted p-2 rounded-md">
                                 <p className="text-sm font-mono flex-grow overflow-x-auto whitespace-nowrap">
-                                  {api.baseUrl.replace(
+                                  {api.base_url.replace(
                                     "api",
                                     "sandbox-api"
                                   )}
@@ -467,7 +383,7 @@ const ViewApi = () => {
                                   className="h-6 w-6 flex-shrink-0"
                                   onClick={() =>
                                     copyToClipboard(
-                                      api.baseUrl.replace(
+                                      api.base_url.replace(
                                         "api",
                                         "sandbox-api"
                                       ),
@@ -539,7 +455,7 @@ const ViewApi = () => {
                                     </p>
                                     <div className="flex items-center gap-2 mt-1 bg-muted p-2 rounded-md">
                                       <p className="text-sm font-mono flex-grow overflow-x-auto whitespace-nowrap">
-                                        {`${api.baseUrl}${endpoint.path}`}
+                                        {`${api.base_url}${endpoint.path}`}
                                       </p>
                                       <Button
                                         variant="ghost"
@@ -547,7 +463,7 @@ const ViewApi = () => {
                                         className="h-6 w-6 flex-shrink-0"
                                         onClick={() =>
                                           copyToClipboard(
-                                            `${api.baseUrl}${endpoint.path}`,
+                                            `${api.base_url}${endpoint.path}`,
                                             "URL copiada"
                                           )
                                         }
@@ -565,15 +481,11 @@ const ViewApi = () => {
                                       <div className="flex items-start justify-between">
                                         <code className="text-xs font-mono whitespace-pre overflow-x-auto">
                                           {`curl -X ${endpoint.method} "${
-                                            api.baseUrl
+                                            api.base_url
                                           }${endpoint.path}" \\
   -H "Content-Type: application/json" \\
   ${
-    api.auth.type === "apiKey"
-      ? '-H "X-API-Key: TU_API_KEY"'
-      : api.auth.type === "oauth2"
-      ? '-H "Authorization: Bearer TU_TOKEN"'
-      : ""
+     ""
   }${
                                             endpoint.method !== "GET"
                                               ? ` \\
@@ -591,13 +503,9 @@ const ViewApi = () => {
                                           onClick={() =>
                                             copyToClipboard(
                                               `curl -X ${endpoint.method} "${
-                                                api.baseUrl
+                                                api.base_url
                                               }${endpoint.path}" -H "Content-Type: application/json" ${
-                                                api.auth.type === "apiKey"
-                                                  ? '-H "X-API-Key: TU_API_KEY"'
-                                                  : api.auth.type === "oauth2"
-                                                  ? '-H "Authorization: Bearer TU_TOKEN"'
-                                                  : ""
+                                                ""
                                               }${
                                                 endpoint.method !== "GET"
                                                   ? ` -d '{"param1": "valor1", "param2": "valor2"}'`
@@ -643,22 +551,17 @@ const ViewApi = () => {
                                     copyToClipboard(
                                       `// Usando fetch (navegador o Node.js con node-fetch)
 const fetchData = async () => {
-  const response = await fetch("${api.baseUrl}${api.endpoints[0]?.path}", {
+  const response = await fetch("${api.base_url}${api.endpoints[0]?.path}", {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
       ${
-        api.auth.type === "apiKey"
-          ? '"X-API-Key": "TU_API_KEY"'
-          : api.auth.type === "oauth2"
-          ? '"Authorization": "Bearer TU_TOKEN"'
-          : ""
+       ""
       }
     }
   });
   
   const data = await response.json();
-  console.log(data);
 };
 
 fetchData().catch(console.error);`,
@@ -672,22 +575,17 @@ fetchData().catch(console.error);`,
                               <pre className="text-xs p-4 font-mono overflow-x-auto whitespace-pre">
 {`// Usando fetch (navegador o Node.js con node-fetch)
 const fetchData = async () => {
-  const response = await fetch("${api.baseUrl}${api.endpoints[0]?.path}", {
+  const response = await fetch("${api.base_url}${api.endpoints[0]?.path}", {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
       ${
-        api.auth.type === "apiKey"
-          ? '"X-API-Key": "TU_API_KEY"'
-          : api.auth.type === "oauth2"
-          ? '"Authorization": "Bearer TU_TOKEN"'
-          : ""
+       ""
       }
     }
   });
   
   const data = await response.json();
-  console.log(data);
 };
 
 fetchData().catch(console.error);`}
@@ -712,15 +610,11 @@ fetchData().catch(console.error);`}
                                       `# Usando la biblioteca requests
 import requests
 
-url = "${api.baseUrl}${api.endpoints[0]?.path}"
+url = "${api.base_url}${api.endpoints[0]?.path}"
 headers = {
     "Content-Type": "application/json",
     ${
-      api.auth.type === "apiKey"
-        ? '"X-API-Key": "TU_API_KEY"'
-        : api.auth.type === "oauth2"
-        ? '"Authorization": "Bearer TU_TOKEN"'
-        : ""
+      ""
     }
 }
 
@@ -738,15 +632,11 @@ print(data)`,
 {`# Usando la biblioteca requests
 import requests
 
-url = "${api.baseUrl}${api.endpoints[0]?.path}"
+url = "${api.base_url}${api.endpoints[0]?.path}"
 headers = {
     "Content-Type": "application/json",
     ${
-      api.auth.type === "apiKey"
-        ? '"X-API-Key": "TU_API_KEY"'
-        : api.auth.type === "oauth2"
-        ? '"Authorization": "Bearer TU_TOKEN"'
-        : ""
+      ""
     }
 }
 

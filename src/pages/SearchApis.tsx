@@ -1,7 +1,4 @@
-
-import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { api, apiCategories } from "@/data/mockData";
 import {
   Card,
   CardContent,
@@ -14,15 +11,8 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
 import {
   Search,
   Database,
@@ -34,120 +24,17 @@ import {
   X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { apis } from "@/data/mockData";
 import { Separator } from "@/components/ui/separator";
+import { useSearchApis } from "@/hooks/useSearchApis";
 
-interface Filters {
-  category: string;
-  authType: string;
-  sortBy: "name" | "date" | "popularity" | "rating";
-}
 
-const SearchApis = () => {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [filters, setFilters] = useState<Filters>({
-    category: "all",
-    authType: "all",
-    sortBy: "popularity",
-  });
-  const [activeFilters, setActiveFilters] = useState<string[]>([]);
-  const [displayMode, setDisplayMode] = useState<"grid" | "list">("grid");
-  const [filteredApis, setFilteredApis] = useState(apis);
-  
-  // Aplicar filtros cuando cambian
-  useEffect(() => {
-    let results = [...apis];
-    
-    // Filtrado por búsqueda
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      results = results.filter(
-        (api) =>
-          api.name.toLowerCase().includes(query) ||
-          api.description.toLowerCase().includes(query) ||
-          api.tags.some((tag) => tag.toLowerCase().includes(query))
-      );
-    }
-    
-    // Filtrado por categoría
-    if (filters.category !== "all") {
-      results = results.filter((api) => api.category.id === filters.category);
-    }
-    
-    // Filtrado por tipo de autenticación
-    if (filters.authType !== "all") {
-      results = results.filter((api) => api.auth.type === filters.authType);
-    }
-    
-    // Ordenamiento
-    switch (filters.sortBy) {
-      case "name":
-        results.sort((a, b) => a.name.localeCompare(b.name));
-        break;
-      case "date":
-        results.sort(
-          (a, b) =>
-            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        );
-        break;
-      case "popularity":
-        results.sort((a, b) => b.stats.totalCalls - a.stats.totalCalls);
-        break;
-      case "rating":
-        results.sort((a, b) => b.stats.uptime - a.stats.uptime);
-        break;
-    }
-    
-    setFilteredApis(results);
-    
-    // Actualizar filtros activos para mostrarlos como chips
-    const active: string[] = [];
-    if (filters.category !== "all") {
-      const category = apiCategories.find((c) => c.id === filters.category);
-      if (category) active.push(`Categoría: ${category.name}`);
-    }
-    if (filters.authType !== "all") {
-      const authTypes: Record<string, string> = {
-        apiKey: "API Key",
-        oauth2: "OAuth 2.0",
-        none: "Sin autenticación",
-      };
-      active.push(`Auth: ${authTypes[filters.authType]}`);
-    }
-    setActiveFilters(active);
-  }, [searchQuery, filters]);
-
-  // Formatea el número de llamadas
-  const formatCalls = (calls: number) => {
-    if (calls >= 1000000) {
-      return `${(calls / 1000000).toFixed(1)}M`;
-    } else if (calls >= 1000) {
-      return `${(calls / 1000).toFixed(1)}K`;
-    }
-    return calls.toString();
-  };
-
-  // Resetea todos los filtros
-  const resetFilters = () => {
-    setFilters({
-      category: "all",
-      authType: "all",
-      sortBy: "popularity",
-    });
-    setSearchQuery("");
-  };
-
-  // Quita un filtro específico
-  const removeFilter = (filter: string) => {
-    if (filter.startsWith("Categoría:")) {
-      setFilters({ ...filters, category: "all" });
-    } else if (filter.startsWith("Auth:")) {
-      setFilters({ ...filters, authType: "all" });
-    }
-  };
+const SearchApis = ({apiCategories, apis}) => {
+  const { searchQuery, setSearchQuery, filters, setFilters, displayMode, setDisplayMode, activeFilters, resetFilters, filteredApis, removeFilter, formatCalls } = useSearchApis({apiCategories, apis});
 
   return (
-    <div className="animate-fade-in">
+    <>
+    {apis && apis.length > 0 && (
+      <div className="animate-fade-in">
       <div className="mb-6">
         <h1 className="text-2xl font-bold tracking-tight">Explorar APIs</h1>
         <p className="text-muted-foreground">
@@ -183,7 +70,7 @@ const SearchApis = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todas las categorías</SelectItem>
-                {apiCategories.map((category) => (
+                {apiCategories?.map((category) => (
                   <SelectItem key={category.id} value={category.id}>
                     {category.name}
                   </SelectItem>
@@ -192,9 +79,9 @@ const SearchApis = () => {
             </Select>
 
             <Select
-              value={filters.authType}
+              value={filters.auth_type}
               onValueChange={(value) =>
-                setFilters({ ...filters, authType: value as any })
+                setFilters({ ...filters, auth_type: value as any })
               }
             >
               <SelectTrigger>
@@ -347,7 +234,7 @@ const SearchApis = () => {
                 <div className="pt-2 flex items-center justify-between text-xs text-muted-foreground">
                   <div className="flex items-center gap-1">
                     <Database className="h-3 w-3" />
-                    <span>{formatCalls(api.stats.totalCalls)} llamadas</span>
+                    <span>{formatCalls(api.stats.total_calls)} llamadas</span>
                   </div>
                   <div>
                     <span className="font-medium text-green-600">
@@ -391,7 +278,7 @@ const SearchApis = () => {
                   <div className="flex items-center gap-3 text-xs text-muted-foreground">
                     <span className="flex items-center gap-1">
                       <Database className="h-3 w-3" />
-                      {formatCalls(api.stats.totalCalls)} llamadas
+                      {formatCalls(api.stats.total_calls)} llamadas
                     </span>
                     <Separator orientation="vertical" className="h-3" />
                     <span className="text-green-600">
@@ -414,6 +301,8 @@ const SearchApis = () => {
         </div>
       )}
     </div>
+    )}
+    </>
   );
 };
 

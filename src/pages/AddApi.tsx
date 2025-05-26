@@ -30,120 +30,14 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { apiCategories } from "@/data/mockData";
+import { useAddApi } from "@/hooks/useAddApi";
 
-const endpointSchema = z.object({
-  path: z.string().min(1, "La ruta es obligatoria"),
-  method: z.enum(["GET", "POST", "PUT", "DELETE", "PATCH"]),
-  description: z.string().min(1, "La descripción es obligatoria"),
-});
-
-const apiFormSchema = z.object({
-  name: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
-  description: z.string().min(10, "La descripción debe tener al menos 10 caracteres"),
-  version: z.string().min(1, "La versión es obligatoria"),
-  owner: z.string().min(2, "El propietario es obligatorio"),
-  categoryId: z.string().min(1, "Selecciona una categoría"),
-  tags: z.string().refine((val) => val.split(",").length > 0, {
-    message: "Ingresa al menos una etiqueta",
-  }),
-  baseUrl: z.string().url("Debe ser una URL válida"),
-  authType: z.enum(["apiKey", "oauth2", "none"]),
-  authDescription: z.string().optional(),
-});
-
-type ApiFormValues = z.infer<typeof apiFormSchema>;
-
-const AddApi = () => {
-  const [isLoading, setIsLoading] = useState(false);
-  const [jsonFile, setJsonFile] = useState<File | null>(null);
-  const [endpoints, setEndpoints] = useState<
-    { path: string; method: string; description: string }[]
-  >([
-    { path: "", method: "GET", description: "" },
-  ]);
-
-  const form = useForm<ApiFormValues>({
-    resolver: zodResolver(apiFormSchema),
-    defaultValues: {
-      name: "",
-      description: "",
-      version: "v1.0.0",
-      owner: "",
-      categoryId: "",
-      tags: "",
-      baseUrl: "",
-      authType: "none",
-      authDescription: "",
-    },
-  });
-
-  const handleEndpointChange = (
-    index: number,
-    field: keyof (typeof endpoints)[0],
-    value: string
-  ) => {
-    const updatedEndpoints = [...endpoints];
-    updatedEndpoints[index] = {
-      ...updatedEndpoints[index],
-      [field]: value,
-    };
-    setEndpoints(updatedEndpoints);
-  };
-
-  const addEndpoint = () => {
-    setEndpoints([
-      ...endpoints,
-      { path: "", method: "GET", description: "" },
-    ]);
-  };
-
-  const removeEndpoint = (index: number) => {
-    if (endpoints.length > 1) {
-      const updatedEndpoints = [...endpoints];
-      updatedEndpoints.splice(index, 1);
-      setEndpoints(updatedEndpoints);
-    }
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      setJsonFile(e.target.files[0]);
-      toast.success("Archivo JSON cargado correctamente");
-    }
-  };
-
-  const onSubmit = (data: ApiFormValues) => {
-    setIsLoading(true);
-
-    // Validación básica de endpoints
-    const isEndpointsValid = endpoints.every(
-      (endpoint) => endpoint.path && endpoint.description
-    );
-
-    if (!isEndpointsValid) {
-      toast.error("Todos los campos de endpoints son obligatorios");
-      setIsLoading(false);
-      return;
-    }
-
-    // Simulamos envío al servidor
-    setTimeout(() => {
-      console.log({ ...data, endpoints, jsonFile });
-      toast.success("API creada correctamente");
-      setIsLoading(false);
-      
-      // Reiniciamos el formulario
-      form.reset();
-      setEndpoints([{ path: "", method: "GET", description: "" }]);
-      setJsonFile(null);
-    }, 1500);
-  };
-
+const AddApi = ({apiCategories}) => {
+  const { form, onSubmit, handleFileChange, jsonFile, endpoints, handleEndpointChange, addEndpoint, removeEndpoint, isLoading } = useAddApi();
   return (
     <div className="max-w-3xl mx-auto animate-fade-in">
       <h1 className="text-2xl font-bold tracking-tight mb-6">Agregar nueva API</h1>
-      
+
       <Card>
         <CardHeader>
           <CardTitle>Detalles de la API</CardTitle>
@@ -162,7 +56,7 @@ const AddApi = () => {
                   <p className="text-sm text-muted-foreground mb-3">
                     Opcionalmente, puedes subir un archivo de definición OpenAPI (Swagger)
                   </p>
-                  
+
                   <div className="flex justify-center">
                     <Input
                       id="json-file"
@@ -179,7 +73,7 @@ const AddApi = () => {
                       Seleccionar archivo
                     </Button>
                   </div>
-                  
+
                   {jsonFile && (
                     <div className="mt-2 text-sm">
                       Archivo cargado: <span className="font-medium">{jsonFile.name}</span>
@@ -187,7 +81,7 @@ const AddApi = () => {
                   )}
                 </div>
               </div>
-              
+
               {/* Información básica */}
               <div className="grid gap-4 sm:grid-cols-2">
                 <FormField
@@ -203,7 +97,7 @@ const AddApi = () => {
                     </FormItem>
                   )}
                 />
-                
+
                 <FormField
                   control={form.control}
                   name="version"
@@ -218,7 +112,7 @@ const AddApi = () => {
                   )}
                 />
               </div>
-              
+
               <FormField
                 control={form.control}
                 name="description"
@@ -237,7 +131,7 @@ const AddApi = () => {
                   </FormItem>
                 )}
               />
-              
+
               <div className="grid gap-4 sm:grid-cols-2">
                 <FormField
                   control={form.control}
@@ -252,10 +146,10 @@ const AddApi = () => {
                     </FormItem>
                   )}
                 />
-                
+
                 <FormField
                   control={form.control}
-                  name="categoryId"
+                  name="category_id"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Categoría</FormLabel>
@@ -269,7 +163,7 @@ const AddApi = () => {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {apiCategories.map((category) => (
+                          {apiCategories?.map((category) => (
                             <SelectItem key={category.id} value={category.id}>
                               {category.name}
                             </SelectItem>
@@ -281,7 +175,7 @@ const AddApi = () => {
                   )}
                 />
               </div>
-              
+
               <FormField
                 control={form.control}
                 name="tags"
@@ -298,10 +192,10 @@ const AddApi = () => {
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
-                name="baseUrl"
+                name="base_url"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>URL Base</FormLabel>
@@ -315,11 +209,11 @@ const AddApi = () => {
                   </FormItem>
                 )}
               />
-              
+
               <div className="space-y-4">
                 <FormField
                   control={form.control}
-                  name="authType"
+                  name="auth_type"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Tipo de Autenticación</FormLabel>
@@ -342,11 +236,11 @@ const AddApi = () => {
                     </FormItem>
                   )}
                 />
-                
-                {form.watch("authType") !== "none" && (
+
+                {form.watch("auth_type") !== "none" && (
                   <FormField
                     control={form.control}
-                    name="authDescription"
+                    name="auth_description"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Descripción de Autenticación</FormLabel>
@@ -362,7 +256,7 @@ const AddApi = () => {
                   />
                 )}
               </div>
-              
+
               {/* Endpoints */}
               <div>
                 <div className="flex items-center justify-between mb-3">
@@ -378,7 +272,7 @@ const AddApi = () => {
                     <span>Agregar endpoint</span>
                   </Button>
                 </div>
-                
+
                 <div className="space-y-3">
                   {endpoints.map((endpoint, index) => (
                     <div
@@ -451,7 +345,7 @@ const AddApi = () => {
                   ))}
                 </div>
               </div>
-              
+
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading ? (
                   <>
