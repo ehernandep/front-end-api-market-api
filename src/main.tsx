@@ -10,7 +10,7 @@ try {
     telemetries: ["performance", "errors", "http"],
     allowCookies: true,
     enableXRay: false,
-    signing: true, // If you have a public resource policy and wish to send unsigned requests please set this to false
+    signing: false, // If you have a public resource policy and wish to send unsigned requests please set this to false
   };
 
   const APPLICATION_ID: string = "61f1a7b0-c2ff-4222-a8ce-fd7019b2787d";
